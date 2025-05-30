@@ -7,7 +7,7 @@ export default function Index() {
   const [latitude, setLatitude] = useState<number>();
   const [longitude, setLongitude] = useState<number>();
   const [timings, setTimings] = useState<any>({});
-  
+
   // get user's location
   useEffect(() => {
     const getLocation = async () => {
