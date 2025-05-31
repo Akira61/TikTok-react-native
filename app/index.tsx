@@ -7,7 +7,8 @@ export default function Index() {
   const [latitude, setLatitude] = useState<number>();
   const [longitude, setLongitude] = useState<number>();
   const [timings, setTimings] = useState<any>({});
-
+  const [filteredTimings, setFilteredTimings] = useState<any>({});
+  
   // get user's location
   useEffect(() => {
     const getLocation = async () => {
@@ -44,6 +45,16 @@ export default function Index() {
       getPrayerTime();
     }
   }, [latitude, longitude]);
+
+ // When timings update, filter relevant prayers
+ useEffect(() => {
+  if (Object.keys(timings).length > 0) {
+    const prayerKeys = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
+    const filtered = Object.entries(timings).filter(([key]) => prayerKeys.includes(key));
+    const arrayToObject = Object.fromEntries(filtered);
+    setFilteredTimings(arrayToObject);
+  }
+}, [timings]);
 
   return (
     <View>
