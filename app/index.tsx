@@ -27,7 +27,9 @@ export default function Index() {
     }
     getLocation();
 
-    // When lat/lng is available, fetch prayer times
+  }, []);
+  
+  // When lat/lng is available, fetch prayer times
   useEffect(() => {
     if(latitude && longitude){
       const today = dayjs().format("D-M-YYYY");
@@ -42,8 +44,7 @@ export default function Index() {
       getPrayerTime();
     }
   }, [latitude, longitude]);
-  }, []);
-  
+
   return (
     <View>
     </View>
