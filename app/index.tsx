@@ -76,29 +76,30 @@ export default function Index() {
 
   // next Pray time
   useEffect(() => {
-    const findNextPrayer = () => {
-      const now = dayjs();
+    const now = dayjs();
+    let nextPrayer = null;
+    let nextPrayerTime = null;
 
-      const upcoming = Object.entries(timings)
-        .map(([name, time]) => {
-          const prayerTime = dayjs(
-            `${dayjs().format("YYYY-MM-DD")} ${time}`,
-            "YYYY-MM-DD HH:mm"
-          );
-          return { name, dateTime: prayerTime };
-        })
-        .filter((item) => item.dateTime.isAfter(now))
-        .sort((a, b) => a.dateTime.unix() - b.dateTime.unix());
+    for (const name in timings) {
+      const time = timings[name];
+      const prayerTime = dayjs(
+        `${dayjs().format("YYYY-MM-DD")} ${time}`,
+        "YYYY-MM-DD HH:mm"
+      );
 
-      if (upcoming.length > 0) {
-        const next = upcoming[0];
-        setNextPrayer(next.name);
-        const diff = next.dateTime.diff(now, "second");
-
-        updateCountdown(diff);
+      if (prayerTime.isAfter(now)) {
+        if (!nextPrayerTime || prayerTime.isBefore(nextPrayerTime)) {
+          nextPrayerTime = prayerTime;
+          nextPrayer = name;
+        }
       }
-    };
-    findNextPrayer();
+    }
+
+    if (nextPrayerTime) {
+      setNextPrayer(nextPrayer);
+      const diff = nextPrayerTime.diff(now, "second");
+      updateCountdown(diff);
+    }
   }, [timings]);
 
   // countdown
