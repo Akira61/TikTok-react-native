@@ -1,4 +1,4 @@
-import { Alert, View } from "react-native";
+import { Alert, ImageBackground, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
@@ -8,7 +8,18 @@ export default function Index() {
   const [longitude, setLongitude] = useState<number>();
   const [timings, setTimings] = useState<any>({});
   const [filteredTimings, setFilteredTimings] = useState<any>({});
+  const [nextPrayer, setNextPrayer] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<string>();
   
+  const prayerNames: { [key: string]: string } = {
+    Fajr: " الفجر ",
+    Sunrise: " الشروق ",
+    Dhuhr: " الظهر ",
+    Asr: " العصر ",
+    Maghrib: " المغرب ",
+    Isha: " العشاء ",
+  };
+
   // get user's location
   useEffect(() => {
     const getLocation = async () => {
@@ -56,8 +67,110 @@ export default function Index() {
   }
 }, [timings]);
 
+// next Pray time
+useEffect(() => {
+  const now = dayjs(); // YYYY-MM-DD HH:mm
+  let nextPrayer = null;
+  let nextPrayerTime = null;
+
+  for (const name in timings) {
+    const time = timings[name];
+    const prayerTime = dayjs(
+      `${dayjs().format("YYYY-MM-DD")} ${time}`,
+      "YYYY-MM-DD HH:mm"
+    );
+
+    if (prayerTime.isAfter(now)) {
+      if (!nextPrayerTime || prayerTime.isBefore(nextPrayerTime)) {
+        nextPrayerTime = prayerTime;
+        nextPrayer = name;
+      }
+    }
+  }
+
+  if (nextPrayerTime) {
+    setNextPrayer(nextPrayer);
+    const diff = nextPrayerTime.diff(now, "second");
+    updateCountdown(diff);
+  }
+   
+}, [timings]);
+
+// countdown
+const updateCountdown = (totalSeconds: number) => {
+  const interval = setInterval(() => {
+    totalSeconds--; // -1
+
+    const hours = Math.floor(totalSeconds / 3600)
+    .toString()
+    .padStart(2, "0");
+
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    .toString()
+    .padStart(2, "0");
+
+    const seconds = Math.floor(totalSeconds % 60)
+    .toString()
+    .padStart(2, "0");
+
+    setCountdown(`${hours}:${minutes}:${seconds}`);
+    
+    if (totalSeconds <= 0) clearInterval(interval);
+  }, 1000); // every scound
+};
   return (
-    <View>
-    </View>
+    <SafeAreaView style={styles.root}>
+      <ImageBackground style={styles.imageBackground} source={require("@/assets/images/background.jpg")}>
+        <View style={styles.container}>
+
+          {/* next prayer */}
+          <View style={styles.nextPray}>
+            <Text style={styles.nextPrayTitle}>
+              {nextPrayer && prayerNames[nextPrayer]}
+            </Text>
+            <Text style={styles.nextPrayState}> بعد </Text>
+            <Text style={styles.nextPrayTimeLeft}>{countdown}</Text>
+          </View>
+
+          {/* all prayer */}
+          <View></View>
+        </View>
+      </ImageBackground>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1
+  },
+  imageBackground: {
+    flex: 1,
+    justifyContent: 'center'
+  },
+  container: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 30,
+    gap: 50,
+  },
+  nextPray: {
+    alignItems: "center",
+    gap: 10,
+  },
+  nextPrayTitle: {
+    fontSize: 48,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  nextPrayState: {
+    color: "#DDDDDD",
+    fontSize: 40,
+  },
+  nextPrayTimeLeft: {
+    fontSize: 48,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+})
